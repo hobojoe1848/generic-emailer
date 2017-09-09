@@ -14,32 +14,33 @@ from_addr = 'your_email@gmail.com'
 to_addr = 'your_email@gmail.com'  #Or any generic email you want all recipients to see
 bcc = EMAILS
 
-msg = MIMEMultipart()
-msg['From'] = from_addr
-msg['To'] = to_addr
-msg['Subject'] = 'Subject Line'
+def create_message():
+    msg = MIMEMultipart()
+    msg['From'] = from_addr
+    msg['To'] = to_addr
+    msg['Subject'] = 'Subject Line'
+    return msg
 
-with open(DATA_FILE) as f:
-    body = f.read()
 
-msg.attach(MIMEText(body, 'plain'))
+def add_body_text(msg):
+    with open(DATA_FILE) as f:
+        body = f.read()
+    msg.attach(MIMEText(body, 'plain'))
+    return msg
 
-smtp_server = smtplib.SMTP('smtp.gmail.com', 587) #Specify Gmail Mail server
+def send_email(msg):
+    smtp_server = smtplib.SMTP('smtp.gmail.com', 587) #Specify Gmail Mail server
+    smtp_server.ehlo() #Send mandatory 'hello' message to SMTP server
+    smtp_server.starttls() #Start TLS Encryption as we're not using SSL.
+    smtp_server.login(' your_email@gmail.com ', ' GMAIL APPLICATION ID ')
+    text = msg.as_string()
+    smtp_server.sendmail(from_addr, [to_addr] + bcc, text) 
+    smtp_server.quit()
 
-smtp_server.ehlo() #Send mandatory 'hello' message to SMTP server
+def main():
+    header = create_message()
+    msg = add_body_text(header)
+    send_email(msg)
 
-smtp_server.starttls() #Start TLS Encryption as we're not using SSL.
-
-#Login to gmail: Account | Password
-smtp_server.login(' your_email@gmail.com ', ' GMAIL APPLICATION ID ')
-
-text = msg.as_string()
-
-#Compile email list: From, To, Email body
-smtp_server.sendmail(from_addr, [to_addr] + bcc, text)
-
-#Close connection to SMTP server
-smtp_server.quit()
-
-#Test Message to verify all passes
-print('Email sent successfully')
+if __name__ == "__main__":
+   main()
